@@ -1,0 +1,17 @@
+<%inherit file="page.part.html" />
+<%namespace file="common.part.html" import="*" />
+
+<h2>${report['name']}</h2>
+
+<form method="POST" action="/results/${index}" class="form">
+%for f in report['fields']:
+<div class="form-group">
+<label for="${f['name']}">${f['description']}</label>
+<input class="form-control" name="${f['name']}"></input>
+</div>
+%endfor
+<div class="form-group">
+<input type="submit" class="btn btn-primary" value="Run Report">
+</div>
+
+</form>

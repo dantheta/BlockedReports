@@ -1,0 +1,10 @@
+
+- name: Test Report
+  fields:
+  - {name: url, description: "URL"}
+  sql: "select %(url)s as url"
+  paging: false
+
+- name: Test Report No Args
+  sql: "select now()"
+  paging: false

@@ -1,0 +1,12 @@
+
+<%def name="breadcrumb()">
+%if args:
+<ul class="breadcrumb">
+	%for k in sorted(args):
+		%if k.startswith('name'):
+		<li>${args[k]}</li>
+		%endif
+	%endfor
+</ul>
+%endif
+</%def>

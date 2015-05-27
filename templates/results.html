@@ -1,0 +1,21 @@
+<%inherit file="page.part.html" />
+<%namespace file="common.part.html" import="*" />
+
+
+<h2>${report['name']}</h2>
+
+<table class="table table-condensed">
+<tr>
+%for col in data.description:
+<th>${col[0]}</th>
+%endfor
+</tr>
+
+%for row in data:
+<tr>
+  %for k,v in row.iteritems():
+  <td>${v}</td>
+  %endfor
+</tr>
+%endfor
+</table>

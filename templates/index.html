@@ -1,0 +1,10 @@
+<%inherit file="page.part.html" />
+<%namespace file="common.part.html" import="*" />
+
+<h2>Reports</h2>
+
+<ul>
+%for report in report_data:
+<li><a href="/report/${loop.index}">${report['name']}</a></li>
+% endfor
+</ul>
