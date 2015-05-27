@@ -19,7 +19,16 @@ colnames = [x[0] for x in data.description]
 %for row in data:
 <tr>
   %for k in colnames:
-  <td>${row[k]|n,decode.utf8}</td>
+  <td>
+  % if k in report.get('links',{}):
+  <a href="/results/${report['links'][k]['report']}?${k}=${row[k]|u}" title="${report['links'][k].get('description','')}">
+  ${row[k]|n,decode.utf8}
+  </a>
+  % else:
+  ${row[k]|n,decode.utf8}
+  % endif
+  
+  </td>
   %endfor
 </tr>
 %endfor

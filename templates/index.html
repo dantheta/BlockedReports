@@ -1,10 +1,20 @@
 <%inherit file="page.part.html" />
 <%namespace file="common.part.html" import="*" />
+<%!
+import itertools
+%>
 
 <h2>Reports</h2>
 
+%for heading,subiter in itertools.groupby( sorted(report_data, key=lambda x: (x.get('category'),x.get('name'))), lambda x: x.get('category')):
+% if heading:
+<h3>${heading or ''}</h3>
+% endif
 <ul>
-%for report in report_data:
-<li><a href="/report/${loop.index}">${report['name']}</a></li>
+% for report in subiter:
+% if report.get('display',True):
+<li><a href="/report/${report['index']}">${report['name']}</a></li>
+% endif
 % endfor
 </ul>
+% endfor

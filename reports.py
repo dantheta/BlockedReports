@@ -33,6 +33,8 @@ def make_args(args):
 
 with open(REPORTDATAFILE) as fp:
     REPORTDATA = yaml.safe_load(fp)
+    for n,r in enumerate(REPORTDATA):
+        r['index'] = n
 
 def db_connect(): 
 	return MySQLdb.connect(
@@ -52,10 +54,11 @@ def run_report(report, index, page=1, **kwargs):
         pages=int(math.ceil(rowcount / 25.0))
     else:
         sql = report['sql']
-        rowcount = c.rowcount
         pages=1
 
     c.execute(sql, kwargs)
+    if not report['paging']:
+        rowcount = c.rowcount
 
     
     return render_template('results.html', 
