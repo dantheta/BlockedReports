@@ -1,1 +1,4 @@
 db.cfg
+*.pyc
+*.swp
+*.swo
