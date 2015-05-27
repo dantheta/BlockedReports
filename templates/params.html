@@ -3,7 +3,7 @@
 
 <h2>${report['name']}</h2>
 
-<form method="POST" action="/results/${index}" class="form">
+<form method="GET" action="/results/${index}" class="form">
 %for f in report['fields']:
 <div class="form-group">
 <label for="${f['name']}">${f['description']}</label>

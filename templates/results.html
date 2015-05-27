@@ -1,21 +1,34 @@
 <%inherit file="page.part.html" />
 <%namespace file="common.part.html" import="*" />
 
+<%
+colnames = [x[0] for x in data.description]
+%>
 
 <h2>${report['name']}</h2>
 
+<p>${rowcount} results found</p>
+
 <table class="table table-condensed">
 <tr>
-%for col in data.description:
-<th>${col[0]}</th>
+%for col in colnames:
+<th>${col}</th>
 %endfor
 </tr>
 
 %for row in data:
 <tr>
-  %for k,v in row.iteritems():
-  <td>${v}</td>
+  %for k in colnames:
+  <td>${row[k]|n,decode.utf8}</td>
   %endfor
 </tr>
 %endfor
 </table>
+
+%if pages > 1 or report['paging']:
+<ul class="pagination">
+%for i in range(1,pages+1):
+<li ${'class="active"' if i == page else ''}><a href="/results/${index}/${i}?${args}">${i}</a></li>
+%endfor
+</ul>
+%endif

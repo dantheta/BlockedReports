@@ -2,6 +2,7 @@
 import sys
 import os.path
 import glob
+import math
 import yaml
 import urllib
 import ConfigParser
@@ -13,6 +14,7 @@ from flask import Flask,request
 from flask.ext.mako import MakoTemplates,render_template
 import mako.exceptions
 app = Flask(__name__)
+app.config['MAKO_TRANSLATE_EXCEPTIONS'] = False
 
 makotmpl = MakoTemplates(app)
 
@@ -26,6 +28,9 @@ REPORTDATAFILE = os.path.join(
 cfg = ConfigParser.ConfigParser()
 cfg.read(['db.cfg'])
 
+def make_args(args):
+	return urllib.urlencode([(x,v) for (x,v) in args.iteritems() ])
+
 with open(REPORTDATAFILE) as fp:
     REPORTDATA = yaml.safe_load(fp)
 
@@ -35,13 +40,33 @@ def db_connect():
 		**dict(cfg.items('mysql'))
 		)
 
-def run_report(report, **kwargs):
+def run_report(report, index, page=1, **kwargs):
     conn = db_connect()
     c = conn.cursor()
-    print report['sql']
-    c.execute(report['sql'], kwargs)
 
-    return render_template('results.html', report=report, data=c)
+    if report['paging']:
+        c.execute("select count(*) as ct from ({}) x".format(report['sql']),kwargs)
+        row = c.fetchone()
+        rowcount = row['ct']
+        sql = "{} LIMIT 25 OFFSET {}".format(report['sql'], (page-1)*25)
+        pages=int(math.ceil(rowcount / 25.0))
+    else:
+        sql = report['sql']
+        rowcount = c.rowcount
+        pages=1
+
+    c.execute(sql, kwargs)
+
+    
+    return render_template('results.html', 
+        report=report, 
+        index=index,
+        data=c,
+        page=page,
+        pages=pages,
+        rowcount=rowcount,
+        args=make_args(kwargs) or ''
+        )
 
 @app.route('/')
 def index():
@@ -56,17 +81,22 @@ def report(index):
     if len(REPORTDATA[index].get('fields',[])) == 0:
         # no parameters, just run the report
 
-        return run_report(REPORTDATA[index])
+        try:
+            return run_report(REPORTDATA[index], index)
+        except Exception,v:
+            return mako.exceptions.html_error_template().render()
 
     else:
         return render_template('params.html', report=REPORTDATA[index], index=index)
 
-@app.route('/results/<int:index>', methods=['POST'])
-def results(index):
-
+@app.route('/results/<int:index>')
+@app.route('/results/<int:index>/<int:page>')
+def results(index, page=1):
     print REPORTDATA[index]['sql']
-    print request.form['url']
-    return run_report(REPORTDATA[index], **request.form.to_dict(True))
+    try:
+        return run_report(REPORTDATA[index], index, page, **request.args.to_dict(True))
+    except Exception,v:
+        return mako.exceptions.html_error_template().render()
 
 
 

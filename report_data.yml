@@ -8,3 +8,21 @@
 - name: Test Report No Args
   sql: "select now()"
   paging: false
+
+- name: users
+  sql: select email from users
+  paging: true
+
+- name: Domain search
+  fields:
+  - { name: url, description: 'URL (partial)'}
+  links:
+    urlid: {report: 4}
+  sql: select urlid, url, inserted, lastPolled from urls where url like concat('%%',%(url)s,'%%')
+  paging: true
+
+- name: URL status
+  fields:
+  - { name: urlid, description: 'URL ID'}
+  sql: select * from url_latest_status where urlid=%(urlid)s
+  paging: false
