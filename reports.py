@@ -1,16 +1,19 @@
 
 import sys
 import os.path
+import csv
 import glob
 import math
 import yaml
 import urllib
+import StringIO
+import tempfile
 import ConfigParser
 
 import MySQLdb,MySQLdb.cursors
 
 
-from flask import Flask,request
+from flask import Flask,request,make_response
 from flask.ext.mako import MakoTemplates,render_template
 import mako.exceptions
 app = Flask(__name__)
@@ -43,11 +46,11 @@ def db_connect():
 		**dict(cfg.items('mysql'))
 		)
 
-def run_report(report, index, page=1, **kwargs):
+def run_report(report, index, page=1, template=True, **kwargs):
     conn = db_connect()
     c = conn.cursor()
 
-    if report['paging']:
+    if report['paging'] and template is True:
         c.execute("select count(*) as ct from ({}) x".format(report['sql']),kwargs)
         row = c.fetchone()
         rowcount = row['ct']
@@ -61,7 +64,8 @@ def run_report(report, index, page=1, **kwargs):
     if not report['paging']:
         rowcount = c.rowcount
 
-    
+    if template is False:
+        return c
     return render_template('results.html', 
         report=report, 
         index=index,
@@ -102,6 +106,25 @@ def results(index, page=1):
     except Exception,v:
         return mako.exceptions.html_error_template().render()
 
+@app.route('/results/<index>/download')
+def download(index):
+    try:
+        fp = StringIO.StringIO()
+        writer = csv.writer(fp)
+
+        rows = run_report(REPORTDATA[index],index, template=False,**request.args.to_dict(True))
+        cols = [ x[0] for x in rows.description ]
+        writer.writerow(cols)
+        for row in rows:
+            writer.writerow([str(row[x] or '') for x in cols])
+        fp.seek(0)
+        rsp = make_response(fp.getvalue())
+        fp.close()
+        rsp.headers['Content-disposition'] =  'attachment; filename={}.csv'.format(index)
+        rsp.headers['Content-type'] = 'text/csv'
+        return rsp
+    except Exception,v:
+        return mako.exceptions.html_error_template().render()
 
 
 @app.route('/robots.txt')

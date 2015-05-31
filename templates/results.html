@@ -4,10 +4,14 @@
 <%
 colnames = [x[0] for x in data.description]
 %>
+<div style="float: right">
+<a href="/results/${report['name']}/download?${args}" class="btn btn-info">Download as CSV</a>
+</div>
 
 <h2>${report['title']}</h2>
 
 <p>${rowcount} results found</p>
+
 
 <table class="table table-condensed">
 <tr>
