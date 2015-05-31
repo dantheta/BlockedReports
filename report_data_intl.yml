@@ -1,0 +1,83 @@
+
+- title: Test Report
+  name: test_report
+  fields:
+  - {name: url, description: "URL"}
+  sql: "select %(url)s as url"
+  paging: false
+  category: Testing
+
+- title: Test Report No Args
+  name: test_report_no_args
+  sql: "select now()"
+  paging: false
+  category: Testing
+
+- title: Users
+  name: users
+  sql: select email from users
+  paging: true
+  category: System
+
+- title: Domain search
+  name: domain_search
+  fields:
+  - { name: url, description: 'URL (partial)'}
+  links:
+    urlid: {report: url_status,description: "View URL Results"}
+  sql: select urlid, url, inserted, lastPolled from urls where url like concat('%%',%(url)s,'%%')
+  paging: true
+
+- title: URL status
+  name: url_status
+  fields:
+  - { name: urlid, description: 'URL ID'}
+  sql: select uls.urlid, url, network_name, status, created, category, 
+    blocktype from url_latest_status uls inner join urls using (urlid) where uls.urlid=%(urlid)s
+  paging: false
+  display: false
+
+- title: Block counts by ISP (frontpage stat)
+  name: isp_block_count
+  sql: select network_name,ok,blocked,timeout,error,dnsfail,total,last_updated
+    from isp_stats_cache
+    order by network_name
+  paging: false
+
+- title: Block counts by ISP
+  name: isp_block_count_all
+  sql: select network_name, count(*) total_blocked
+    from url_latest_status
+    where status = 'blocked'
+    group by network_name
+  paging: false
+
+- title: Top 100 most blocked URLs
+  name: top_100_most_blocked
+  sql: select url, count(*) block_count
+    from urls
+    inner join url_latest_status results on results.urlid = urls.urlid
+    where results.status = 'blocked'
+    group by url
+    order by count(*) desc
+    limit 100
+  paging: false
+
+- title: Recently blocked URLs
+  name: recently_blocked_urls
+  sql: select url, network_name, uls.status status, created
+    from urls
+    inner join url_latest_status uls on uls.urlid = urls.urlid
+    where uls.status = 'blocked'
+    order by created desc 
+  paging: true
+
+- title: Requests per day
+  name: requests_per_day
+  sql: select date(created) Date,count(*) Requests,count(distinct urlid) URLs
+    from requests
+    group by date(created)
+    order by date(created) desc
+  paging: true
+  category: Usage
+
