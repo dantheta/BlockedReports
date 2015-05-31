@@ -13,8 +13,9 @@ import ConfigParser
 
 import MySQLdb,MySQLdb.cursors
 
+from functools import wraps
 
-from flask import Flask,request,make_response,send_file
+from flask import Flask,request,make_response,send_file,Response
 from flask.ext.mako import MakoTemplates,render_template
 import mako.exceptions
 app = Flask(__name__)
@@ -40,6 +41,31 @@ def db_connect():
 		cursorclass=MySQLdb.cursors.DictCursor,
 		**dict(cfg.items('mysql'))
 		)
+
+
+
+def check_auth(username, password):
+    """This function is called to check if a username /
+    password combination is valid.
+    """
+    return username == cfg.get('app','username') and password == cfg.get('app','password')
+
+def authenticate():
+    """Sends a 401 response that enables basic auth"""
+    return Response(
+    'Could not verify your access level for that URL.\n'
+    'You have to login with proper credentials', 401,
+    {'WWW-Authenticate': 'Basic realm="Login Required"'})
+
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+        if not auth or not check_auth(auth.username, auth.password):
+            return authenticate()
+        return f(*args, **kwargs)
+    return decorated
+
 
 def run_report(report, index, page=1, template=True, **kwargs):
     conn = db_connect()
@@ -72,6 +98,7 @@ def run_report(report, index, page=1, template=True, **kwargs):
         )
 
 @app.route('/')
+@requires_auth
 def index():
 
     try:
@@ -80,6 +107,7 @@ def index():
         return mako.exceptions.html_error_template().render()
 
 @app.route('/report/<index>')
+@requires_auth
 def report(index):
     if len(REPORTDATA[index].get('fields',[])) == 0:
         # no parameters, just run the report
@@ -94,6 +122,7 @@ def report(index):
 
 @app.route('/results/<index>')
 @app.route('/results/<index>/<int:page>')
+@requires_auth
 def results(index, page=1):
     print REPORTDATA[index]['sql']
     try:
@@ -102,6 +131,7 @@ def results(index, page=1):
         return mako.exceptions.html_error_template().render()
 
 @app.route('/results/<index>/download')
+@requires_auth
 def download(index):
     try:
         fp = tempfile.NamedTemporaryFile()
