@@ -6,6 +6,7 @@ import glob
 import math
 import yaml
 import urllib
+import datetime
 import StringIO
 import tempfile
 import ConfigParser
@@ -120,7 +121,7 @@ def download(index):
         fp.seek(0)
         rsp = make_response(fp.getvalue())
         fp.close()
-        rsp.headers['Content-disposition'] =  'attachment; filename={}.csv'.format(index)
+        rsp.headers['Content-disposition'] =  'attachment; filename={}_{}.csv'.format(index, datetime.datetime.now())
         rsp.headers['Content-type'] = 'text/csv'
         return rsp
     except Exception,v:
