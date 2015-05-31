@@ -14,7 +14,7 @@ import ConfigParser
 import MySQLdb,MySQLdb.cursors
 
 
-from flask import Flask,request,make_response
+from flask import Flask,request,make_response,send_file
 from flask.ext.mako import MakoTemplates,render_template
 import mako.exceptions
 app = Flask(__name__)
@@ -110,7 +110,7 @@ def results(index, page=1):
 @app.route('/results/<index>/download')
 def download(index):
     try:
-        fp = StringIO.StringIO()
+        fp = tempfile.NamedTemporaryFile()
         writer = csv.writer(fp)
 
         rows = run_report(REPORTDATA[index],index, template=False,**request.args.to_dict(True))
@@ -119,11 +119,8 @@ def download(index):
         for row in rows:
             writer.writerow([str(row[x] or '') for x in cols])
         fp.seek(0)
-        rsp = make_response(fp.getvalue())
-        fp.close()
-        rsp.headers['Content-disposition'] =  'attachment; filename={}_{}.csv'.format(index, datetime.datetime.now())
-        rsp.headers['Content-type'] = 'text/csv'
-        return rsp
+        return send_file(fp, mimetype='text/csv', as_attachment=True, 
+            attachment_filename='{}_{}.csv'.format(index, datetime.datetime.now()))
     except Exception,v:
         return mako.exceptions.html_error_template().render()
 
