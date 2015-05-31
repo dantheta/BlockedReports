@@ -132,5 +132,4 @@ def robotstxt():
 Disallow: /"""
 
 read_report_definitions()
-app.debug=True
-app.run()
+app.run(host='0.0.0.0')
