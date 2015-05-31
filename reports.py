@@ -31,10 +31,11 @@ cfg.read(['db.cfg'])
 def make_args(args):
 	return urllib.urlencode([(x,v) for (x,v) in args.iteritems() ])
 
-with open(REPORTDATAFILE) as fp:
-    REPORTDATA = yaml.safe_load(fp)
-    for n,r in enumerate(REPORTDATA):
-        r['index'] = n
+def read_report_definitions():
+    global REPORTDATA
+    with open(REPORTDATAFILE) as fp:
+        reportdata = yaml.safe_load(fp)
+        REPORTDATA = {x['name']:x for x in reportdata}
 
 def db_connect(): 
 	return MySQLdb.connect(
@@ -79,7 +80,7 @@ def index():
     except Exception,v:
         return mako.exceptions.html_error_template().render()
 
-@app.route('/report/<int:index>')
+@app.route('/report/<index>')
 def report(index):
     if len(REPORTDATA[index].get('fields',[])) == 0:
         # no parameters, just run the report
@@ -92,8 +93,8 @@ def report(index):
     else:
         return render_template('params.html', report=REPORTDATA[index], index=index)
 
-@app.route('/results/<int:index>')
-@app.route('/results/<int:index>/<int:page>')
+@app.route('/results/<index>')
+@app.route('/results/<index>/<int:page>')
 def results(index, page=1):
     print REPORTDATA[index]['sql']
     try:
@@ -108,5 +109,6 @@ def robotstxt():
 	return """User-agent: *
 Disallow: /"""
 
+read_report_definitions()
 app.debug=True
 app.run()

@@ -1,30 +1,35 @@
 
-- name: Test Report
+- title: Test Report
+  name: test_report
   fields:
   - {name: url, description: "URL"}
   sql: "select %(url)s as url"
   paging: false
   category: Testing
 
-- name: Test Report No Args
+- title: Test Report No Args
+  name: test_report_no_args
   sql: "select now()"
   paging: false
   category: Testing
 
-- name: users
+- title: Users
+  name: users
   sql: select email from users
   paging: true
   category: System
 
-- name: Domain search
+- title: Domain search
+  name: domain_search
   fields:
   - { name: url, description: 'URL (partial)'}
   links:
-    urlid: {report: 4,description: "View URL Results"}
+    urlid: {report: url_status,description: "View URL Results"}
   sql: select urlid, url, inserted, lastPolled from urls where url like concat('%%',%(url)s,'%%')
   paging: true
 
-- name: URL status
+- title: URL status
+  name: url_status
   fields:
   - { name: urlid, description: 'URL ID'}
   sql: select uls.urlid, url, network_name, status, created, category, 
