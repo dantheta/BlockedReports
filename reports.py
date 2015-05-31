@@ -22,13 +22,6 @@ app.config['MAKO_TRANSLATE_EXCEPTIONS'] = False
 
 makotmpl = MakoTemplates(app)
 
-REPORTDATAFILE = os.path.join(
-    os.path.dirname(
-        os.path.abspath(sys.argv[0])
-    ),
-    'report_data.yml'
-    )
-
 cfg = ConfigParser.ConfigParser()
 cfg.read(['db.cfg'])
 
@@ -38,7 +31,7 @@ def make_args(args):
 @app.before_request
 def read_report_definitions():
     global REPORTDATA
-    with open(REPORTDATAFILE) as fp:
+    with open(cfg.get('app','reports')) as fp:
         reportdata = yaml.safe_load(fp)
         REPORTDATA = {x['name']:x for x in reportdata}
 
