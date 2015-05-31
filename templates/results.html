@@ -3,6 +3,7 @@
 
 <%
 colnames = [x[0] for x in data.description]
+coltypes = [x[1] for x in data.description]
 %>
 <div style="float: right">
 <a href="/results/${report['name']}/download?${args}" class="btn btn-info">Download as CSV</a>
@@ -15,15 +16,15 @@ colnames = [x[0] for x in data.description]
 
 <table class="table table-condensed">
 <tr>
-%for col in colnames:
-<th>${col}</th>
+%for col,t in zip(colnames,coltypes):
+<th class="${'num' if t == 8 else ''}">${col}</th>
 %endfor
 </tr>
 
 %for row in data:
 <tr>
-  %for k in colnames:
-  <td>
+  %for k,t in zip(colnames,coltypes):
+  <td class="${'num' if t == 8 else ''}">
   % if k in report.get('links',{}):
   <a href="/results/${report['links'][k]['report']}?${k}=${row[k]|u}" title="${report['links'][k].get('description','')}">
   ${row[k]|n,decode.utf8}

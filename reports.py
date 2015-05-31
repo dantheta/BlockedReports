@@ -35,6 +35,7 @@ cfg.read(['db.cfg'])
 def make_args(args):
 	return urllib.urlencode([(x,v) for (x,v) in args.iteritems() ])
 
+@app.before_request
 def read_report_definitions():
     global REPORTDATA
     with open(REPORTDATAFILE) as fp:
