@@ -72,10 +72,10 @@ def run_report(report, index, page=1, template=True, **kwargs):
     c = conn.cursor()
 
     if report['paging'] and template is True:
-        c.execute("select count(*) as ct from ({}) x".format(report['sql']),kwargs)
+        c.execute("select count(*) as ct from ({0}) x".format(report['sql']),kwargs)
         row = c.fetchone()
         rowcount = row['ct']
-        sql = "{} LIMIT 25 OFFSET {}".format(report['sql'], (page-1)*25)
+        sql = "{0} LIMIT 25 OFFSET {1}".format(report['sql'], (page-1)*25)
         pages=int(math.ceil(rowcount / 25.0))
     else:
         sql = report['sql']
@@ -144,7 +144,7 @@ def download(index):
             writer.writerow([str(row[x] or '') for x in cols])
         fp.seek(0)
         return send_file(fp, mimetype='text/csv', as_attachment=True, 
-            attachment_filename='{}_{}.csv'.format(index, datetime.datetime.now()))
+            attachment_filename='{0}_{1}.csv'.format(index, datetime.datetime.now()))
     except Exception,v:
         return mako.exceptions.html_error_template().render()
 
