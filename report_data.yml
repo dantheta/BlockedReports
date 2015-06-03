@@ -81,3 +81,36 @@
   paging: true
   category: Usage
 
+- title: List of networks
+  name: networks
+  sql:
+    select network_name, max(created) as last_result, count(*) as result_count 
+    from results group by network_name order by network_name
+
+- title: Summary of results
+  name: results_summary
+  sql:
+    select network_name,
+    sum(case when status = 'ok' then 1 else 0 end) ok,
+    sum(case when status = 'error' then 1 else 0 end) error,
+    sum(case when status = 'dnsfail' then 1 else 0 end) dnsfail,
+    sum(case when status = 'timeout' then 1 else 0 end) timeout,
+    sum(case when status = 'blocked' then 1 else 0 end) blocked
+    from results group by network_name order by network_name
+
+- title: Alexa URL status
+  name: alexa_status
+  sql:
+    select url, network_name, created probed_at, status
+    from results inner join urls using(urlid)
+    where source = 'alexa'
+    order by url, network_name
+  paging: true
+
+- title: All blocked sites
+  name: all_blocked
+  sql:
+    select url, network_name, created probed_at, status
+    from url_latest_status results inner join urls using(urlid)
+    where status = 'blocked' order by url, network_name, created desc
+  paging: true

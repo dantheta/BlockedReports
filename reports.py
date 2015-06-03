@@ -155,4 +155,4 @@ def robotstxt():
 Disallow: /"""
 
 read_report_definitions()
-app.run(host='0.0.0.0')
+app.run(host='0.0.0.0', port=5020)
