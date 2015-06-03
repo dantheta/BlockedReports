@@ -81,6 +81,15 @@
   paging: true
   category: Usage
 
+- title: Results per day
+  name: results_per_day
+  sql: select date(created) Date,count(*) Results,count(distinct urlid) URLs
+    from results
+    group by date(created)
+    order by date(created) desc
+  paging: true
+  category: Usage
+
 - title: List of networks
   name: networks
   sql:
