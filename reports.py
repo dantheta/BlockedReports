@@ -34,7 +34,7 @@ def read_report_definitions():
     global REPORTDATA
     with open(cfg.get('app','reports')) as fp:
         reportdata = yaml.safe_load(fp)
-        REPORTDATA = {x['name']:x for x in reportdata}
+        REPORTDATA = dict([ (x['name'],x) for x in reportdata])
 
 def db_connect(): 
 	return MySQLdb.connect(
