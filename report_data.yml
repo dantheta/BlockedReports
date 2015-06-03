@@ -13,11 +13,11 @@
   paging: false
   category: Testing
 
-- title: Users
-  name: users
-  sql: select email from users
-  paging: true
-  category: System
+#- title: Users
+#  name: users
+#  sql: select email from users
+#  paging: true
+#  category: System
 
 - title: Domain search
   name: domain_search
@@ -86,6 +86,7 @@
   sql:
     select network_name, max(created) as last_result, count(*) as result_count 
     from results group by network_name order by network_name
+  paging: false
 
 - title: Summary of results
   name: results_summary
@@ -97,6 +98,7 @@
     sum(case when status = 'timeout' then 1 else 0 end) timeout,
     sum(case when status = 'blocked' then 1 else 0 end) blocked
     from results group by network_name order by network_name
+  paging: false
 
 - title: Alexa URL status
   name: alexa_status
