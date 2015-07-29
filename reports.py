@@ -54,13 +54,13 @@ class FilterSet(object):
     def urldecode(s, mode='html'):
         if mode == 'html':
             return "<br />".join([
-                "<b>{}</b>: {}".format(k,v) 
+                "<b>{0}</b>: {1}".format(k,v) 
                 for (k,v)
                 in urlparse.parse_qsl(s)
                 ])
         else:
             return "; ".join([
-                "{}: {}".format(k,v) 
+                "{0}: {1}".format(k,v) 
                 for (k,v)
                 in urlparse.parse_qsl(s)
                 ])
