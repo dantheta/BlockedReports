@@ -9,6 +9,7 @@ import urllib
 import datetime
 import StringIO
 import tempfile
+import urlparse
 import ConfigParser
 
 import MySQLdb,MySQLdb.cursors
@@ -18,6 +19,7 @@ from functools import wraps
 from flask import Flask,request,make_response,send_file,Response
 from flask.ext.mako import MakoTemplates,render_template
 import mako.exceptions
+
 app = Flask(__name__)
 app.config['MAKO_TRANSLATE_EXCEPTIONS'] = False
 
@@ -25,6 +27,30 @@ makotmpl = MakoTemplates(app)
 
 cfg = ConfigParser.ConfigParser()
 cfg.read(['db.cfg'])
+
+class FilterSet(object):
+    @classmethod
+    def run(cls, fltname, s, *args, **kw):
+        return getattr(cls, fltname)(s, *args, **kw)
+
+    @staticmethod
+    def urldecode(s, mode='html'):
+        if mode == 'html':
+            return "<br />".join([
+                "<b>{}</b>: {}".format(k,v) 
+                for (k,v)
+                in urlparse.parse_qsl(s)
+                ])
+        else:
+            return "; ".join([
+                "{}: {}".format(k,v) 
+                for (k,v)
+                in urlparse.parse_qsl(s)
+                ])
+
+    @staticmethod
+    def noop(s, *args):
+        return s
 
 def make_args(args):
 	return urllib.urlencode([(x,v) for (x,v) in args.iteritems() ])
@@ -94,7 +120,8 @@ def run_report(report, index, page=1, template=True, **kwargs):
         page=page,
         pages=pages,
         rowcount=rowcount,
-        args=make_args(kwargs) or ''
+        args=make_args(kwargs) or '',
+        FilterSet=FilterSet,
         )
 
 @app.route('/')
@@ -141,7 +168,7 @@ def download(index):
         cols = [ x[0] for x in rows.description ]
         writer.writerow(cols)
         for row in rows:
-            writer.writerow([str(row[x] or '') for x in cols])
+            writer.writerow([str(FilterSet.run(REPORTDATA[index].get('filters',{}).get(x,'noop'),row[x], 'text') or '') for x in cols])
         fp.seek(0)
         return send_file(fp, mimetype='text/csv', as_attachment=True, 
             attachment_filename='{0}_{1}.csv'.format(index, datetime.datetime.now()))

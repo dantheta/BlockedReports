@@ -125,3 +125,18 @@
     from url_latest_status results inner join urls using(urlid)
     where status = 'blocked' order by url, network_name, created desc
   paging: true
+
+- title: Request submissions with user info
+  name: request_info
+  sql:
+    select urlid, url, contactID,contacts.email,requests.created,submission_info 
+    from requests 
+    inner join urls using (urlID)
+    left join contacts on contactid = contacts.id
+    where submission_info like '%%information=%%' and not submission_info like '%%information=&%%'
+    order by requests.created
+  links:
+    urlid: {report: url_status,description: "View URL Results"}
+  filters:
+    submission_info: urldecode
+  paging: true
