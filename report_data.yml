@@ -32,7 +32,7 @@
   name: url_status
   fields:
   - { name: urlid, description: 'URL ID'}
-  sql: select uls.urlid, url, network_name, status, created, category, 
+  sql: select uls.urlid, url, network_name, uls.status, created, category, 
     blocktype from url_latest_status uls inner join urls using (urlid) where uls.urlid=%(urlid)s
   paging: false
   display: false
@@ -48,7 +48,7 @@
   name: isp_block_count_all
   sql: select network_name, count(*) total_blocked
     from url_latest_status
-    where status = 'blocked'
+    where url_latest_status.status = 'blocked'
     group by network_name
   paging: false
 
@@ -112,7 +112,7 @@
 - title: Alexa URL status
   name: alexa_status
   sql:
-    select url, network_name, created probed_at, status
+    select url, network_name, created probed_at, results.status
     from results inner join urls using(urlid)
     where source = 'alexa'
     order by url, network_name
@@ -121,9 +121,9 @@
 - title: All blocked sites
   name: all_blocked
   sql:
-    select url, network_name, created probed_at, status
+    select url, network_name, created probed_at, url_latest_status.status
     from url_latest_status results inner join urls using(urlid)
-    where status = 'blocked' order by url, network_name, created desc
+    where url_latest_status.status = 'blocked' order by url, network_name, created desc
   paging: true
 
 - title: Request submissions with user info
@@ -139,4 +139,5 @@
     urlid: {report: url_status,description: "View URL Results"}
   filters:
     submission_info: urldecode
+    url: linkify
   paging: true

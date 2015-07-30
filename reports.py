@@ -46,13 +46,18 @@ cfg = ConfigParser.ConfigParser()
 cfg.read(['db.cfg'])
 
 class FilterSet(object):
-    @classmethod
-    def run(cls, fltname, s, *args, **kw):
-        return getattr(cls, fltname)(s, *args, **kw)
+    def __init__(self, report, mode='html'):
+        self.mode = mode
+        if 'filters' not in report:
+            self.filters = {}
+        else:
+            self.filters = report['filters']
 
-    @staticmethod
-    def urldecode(s, mode='html'):
-        if mode == 'html':
+    def run(self, column, s, *args, **kw):
+        return getattr(self, self.filters.get(column,'noop'))(s, *args, **kw)
+
+    def urldecode(self, s):
+        if self.mode == 'html':
             return "<br />".join([
                 "<b>{0}</b>: {1}".format(k,v) 
                 for (k,v)
@@ -65,8 +70,12 @@ class FilterSet(object):
                 in urlparse.parse_qsl(s)
                 ])
 
-    @staticmethod
-    def noop(s, *args):
+    def noop(self, s, *args):
+        return s
+
+    def linkify(self, s):
+        if self.mode == 'html':
+            return """<a href="{0}">{0}</a>""".format(s)
         return s
 
 def make_args(args):
@@ -138,7 +147,7 @@ def run_report(report, index, page=1, template=True, **kwargs):
         pages=pages,
         rowcount=rowcount,
         args=make_args(kwargs) or '',
-        FilterSet=FilterSet,
+        filterset=FilterSet(report),
         )
 
 @app.route('/')
@@ -180,12 +189,14 @@ def download(index):
     try:
         fp = tempfile.NamedTemporaryFile()
         writer = csv.writer(fp)
+        report = REPORTDATA[index]
+        filterset=FilterSet(report,'text')
 
-        rows = run_report(REPORTDATA[index],index, template=False,**request.args.to_dict(True))
+        rows = run_report(report, index, template=False,**request.args.to_dict(True))
         cols = [ x[0] for x in rows.description ]
         writer.writerow(cols)
         for row in rows:
-            writer.writerow([str(FilterSet.run(REPORTDATA[index].get('filters',{}).get(x,'noop'),row[x], 'text') or '') for x in cols])
+            writer.writerow([str(filterset.run(x,row[x]) or '') for x in cols])
         fp.seek(0)
         return send_file(fp, mimetype='text/csv', as_attachment=True, 
             attachment_filename='{0}_{1}.csv'.format(index, datetime.datetime.now()))

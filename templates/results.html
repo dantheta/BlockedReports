@@ -27,10 +27,10 @@ coltypes = [x[1] for x in data.description]
   <td class="${'num' if t == 8 else ''}">
   % if k in report.get('links',{}):
   <a href="/results/${report['links'][k]['report']}?${k}=${row[k]|u}" title="${report['links'][k].get('description','')}">
-  ${FilterSet.run(report.get('filters',{}).get(k,'noop'), row[k])|n,decode.utf8}
+  ${filterset.run(k, row[k])|n,decode.utf8}
   </a>
   % else:
-  ${FilterSet.run(report.get('filters',{}).get(k,'noop'), row[k])|n,decode.utf8}
+  ${filterset.run(k, row[k])|n,decode.utf8}
   % endif
   
   </td>
